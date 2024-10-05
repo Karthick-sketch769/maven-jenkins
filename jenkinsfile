@@ -1,31 +1,28 @@
 pipeline {
     agent any
     tools {
-        maven 'M1'
+        maven 'M3'
     }
 
-    stages {
-        stage('Clone') {
+     stages {
+      stage('Clone') {
             steps {
                 git branch: 'main', url: 'https://github.com/Karthick-sketch769/maven-jenkins.git'
             }
         }
-
-        stage('Build') {
-            steps {
-                sh 'mvn install'
-                sh 'mvn -Dmaven.test.failure.ignore=true clean package'
+        stage ('Build') {
+          steps {
+                bat 'mvn install'
+                bat 'mvn -Dmaven.test.failure.ignore=true clean package'
             }
         }
-   stage ('docker image') {
-     steps {
-         sh 'docker build -t myteam .'
      }
-     }
-     stage ('docker container') {
-         steps {
-             sh 'docker run -itd -p 5000:5000 --name boost myteam'
+     post {
+         always {
+             junit (
+                 allowEmptyResults:true, testResults:'*/test-reports/ .xml'
+             )
+             emailext body: 'summary', subject: 'pipeline status', to: 'karthicksethu189@gmail.com'
          }
      }
-    }
-}
+     }
